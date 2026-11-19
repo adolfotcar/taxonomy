@@ -1,0 +1,31 @@
+name: Preview app on PR
+on: pull_request
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+jobs:
+  build_and_preview:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install and build
+        working-directory: web
+        env:
+          VITE_DATA_URL: https://taxonomy-data.web.app
+        run: |
+          npm ci
+          npm run build
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ADOLFOTCAR_HOME }}
+          projectId: adolfotcar-home
+          target: app
+          expires: 7d
