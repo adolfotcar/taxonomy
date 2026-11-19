@@ -1,0 +1,90 @@
+# Signpost species: always labelled on the tree so people can orient themselves.
+# `name` must match the scientific name in the Open Tree Taxonomy.
+
+[[signpost]]
+name = "Homo sapiens"
+common = "Human"
+
+[[signpost]]
+name = "Pan troglodytes"
+common = "Chimpanzee"
+
+[[signpost]]
+name = "Canis lupus"
+common = "Wolf"
+
+[[signpost]]
+name = "Balaenoptera musculus"
+common = "Blue whale"
+
+[[signpost]]
+name = "Gallus gallus"
+common = "Chicken"
+
+[[signpost]]
+name = "Crocodylus niloticus"
+common = "Nile crocodile"
+
+[[signpost]]
+name = "Danio rerio"
+common = "Zebrafish"
+
+[[signpost]]
+name = "Carcharodon carcharias"
+common = "Great white shark"
+
+[[signpost]]
+name = "Octopus vulgaris"
+common = "Octopus"
+
+[[signpost]]
+name = "Apis mellifera"
+common = "Honeybee"
+
+[[signpost]]
+name = "Drosophila melanogaster"
+common = "Fruit fly"
+
+[[signpost]]
+name = "Danaus plexippus"
+common = "Monarch butterfly"
+
+[[signpost]]
+name = "Caenorhabditis elegans"
+common = "Roundworm"
+
+[[signpost]]
+name = "Quercus robur"
+common = "Oak"
+
+[[signpost]]
+name = "Helianthus annuus"
+common = "Sunflower"
+
+[[signpost]]
+name = "Oryza sativa"
+common = "Rice"
+
+[[signpost]]
+name = "Sequoiadendron giganteum"
+common = "Giant sequoia"
+
+[[signpost]]
+name = "Agaricus bisporus"
+common = "Button mushroom"
+
+[[signpost]]
+name = "Saccharomyces cerevisiae"
+common = "Baker's yeast"
+
+[[signpost]]
+name = "Plasmodium falciparum"
+common = "Malaria parasite"
+
+[[signpost]]
+name = "Escherichia coli"
+common = "E. coli"
+
+[[signpost]]
+name = "Methanobrevibacter smithii"
+common = "Gut archaeon"

@@ -21,6 +21,20 @@ def main(argv: list[str] | None = None) -> None:
         "build-db", help="build the master DuckDB database from the sources"
     )
 
+    layout_cmd = commands.add_parser("layout", help="compute the radial layout")
+    layout_cmd.add_argument(
+        "--compression",
+        type=float,
+        default=None,
+        help="slice share ∝ species**compression at each split; 1 = proportional, "
+        "lower = more room for small groups (default: 0.75)",
+    )
+    preview_cmd = commands.add_parser("preview", help="render a PNG of the layout")
+    preview_cmd.add_argument(
+        "--out", type=Path, help="default: <data-dir>/build/preview.png"
+    )
+    preview_cmd.add_argument("--size", type=int, default=3000, help="image size in px")
+
     args = parser.parse_args(argv)
 
     if args.command == "fetch":
@@ -31,3 +45,18 @@ def main(argv: list[str] | None = None) -> None:
         from .build_db import build
 
         build(args.data_dir)
+    elif args.command == "layout":
+        from .layout import DEFAULT_COMPRESSION, run
+
+        compression = (
+            DEFAULT_COMPRESSION if args.compression is None else args.compression
+        )
+        run(args.data_dir, compression)
+    elif args.command == "preview":
+        from .preview import render
+
+        render(
+            args.data_dir,
+            args.out or args.data_dir / "build" / "preview.png",
+            args.size,
+        )
