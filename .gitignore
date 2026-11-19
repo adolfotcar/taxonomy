@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Pipeline working data (downloads, DuckDB master database)
+pipeline/data/
+*.duckdb
+*.duckdb.wal
+
+# Generated tiles / search index (rebuilt by the pipeline)
+web/public/data/
+
+# Firebase
+.firebase/
+firebase-debug.log*
+
+# Local env / secrets
+.env
+.env.*
+*.local
+
+# OS / editors
+.DS_Store
+.idea/

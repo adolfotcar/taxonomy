@@ -1,0 +1,26 @@
+[project]
+name = "taxonomy-pipeline"
+version = "0.1.0"
+description = "Builds the taxonomy tree, radial layout, tiles and search index for the web app"
+readme = "README.md"
+authors = [
+    { name = "Adolfo Carvalho", email = "adolfotcar@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "duckdb>=2.0.0",
+    "polars>=2.1.0",
+]
+
+[project.scripts]
+taxonomy-pipeline = "taxonomy_pipeline:main"
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "ruff>=0.17.5",
+]
