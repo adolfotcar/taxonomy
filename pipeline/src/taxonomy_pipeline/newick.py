@@ -40,9 +40,7 @@ def parse(text: str) -> ParsedTree:
         token = match.group()
         if finished:
             if token.strip():
-                raise ValueError(
-                    f"unexpected content after ';' at offset {match.start()}"
-                )
+                raise ValueError(f"unexpected content after ';' at offset {match.start()}")
             continue
         if token == "(":
             stack.append(new_node())

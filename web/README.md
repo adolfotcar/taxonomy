@@ -1,32 +1,20 @@
-# React + TypeScript + Vite
+# taxonomy-web
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Zoomable radial tree-of-life viewer (React + TypeScript + Vite, drawn with Canvas 2D).
 
-Currently, two official plugins are available:
+Needs the generated data in `public/data/` — run the pipeline first
+(`uv run taxonomy-pipeline tiles` in `../pipeline`).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```sh
+npm install
+npm run dev     # dev server
+npm test        # unit tests (vitest)
+npm run lint    # oxlint
+npm run build   # type-check + production build into dist/
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Set `VITE_DATA_URL` to load the data from somewhere other than `/data`
+(e.g. a Cloud Storage bucket).
+
+The current view is kept in the URL (`#v=x,y,log2scale`), so any spot on the tree
+can be shared as a link.

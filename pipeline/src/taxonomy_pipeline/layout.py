@@ -7,9 +7,18 @@ Slices: a node's slice is split among its children in proportion to
 ``tips ** compression``. ``compression = 1`` is strictly proportional to species
 count; smaller values give small clades (mammals, birds…) more room.
 
-Radius: ``r = depth / (depth + height)``, i.e. how far along its own longest
-root-to-tip path a node is. Tips (height 0) land on the rim, the root at the
-centre, and a parent is always strictly inside its children.
+Radius: two rules, and a node sits wherever is closer to the rim.
+
+* Branching order: ``r = depth / (depth + height)``, how far along its own longest
+  root-to-tip path a node is. Gives the big picture its shape near the centre.
+* Self-similar ("fractal"): a node's gap to the rim is ``fractal * span**exponent``,
+  so a subtree reaches in from the rim about as far as it is wide. Without this,
+  zooming in on a few species shows only parallel lines: the points where they
+  branch would be thousands of screens away towards the centre.
+
+Tips land on the rim, the root at the centre, and a parent is never outside its
+children. ``d = 1 - r`` (the gap to the rim) is kept separately at full precision,
+since for species it is tiny.
 
 Relies on ``node.id`` being preorder: every child has a larger id than its parent.
 """
@@ -25,6 +34,8 @@ import polars as pl
 from .build_db import db_path
 
 DEFAULT_COMPRESSION = 0.75
+DEFAULT_FRACTAL = 2.0
+FRACTAL_EXPONENT = 0.9
 
 
 @dataclass
@@ -32,14 +43,21 @@ class Layout:
     a0: np.ndarray  # float64, slice start (turns)
     a1: np.ndarray  # float64, slice end (turns)
     r: np.ndarray  # float64, radius 0..1
+    d: np.ndarray  # float64, 1 - r (gap to the rim), full precision near the rim
     tips: np.ndarray  # int32, number of tips in subtree
     height: np.ndarray  # int16, longest path to a tip
 
 
 def compute(
-    parent: list[int], depth: list[int], compression: float = DEFAULT_COMPRESSION
+    parent: list[int],
+    depth: list[int],
+    compression: float = DEFAULT_COMPRESSION,
+    fractal: float = DEFAULT_FRACTAL,
 ) -> Layout:
-    """``parent[i]`` is the parent of node ``i`` (-1 for the root, which must be 0)."""
+    """``parent[i]`` is the parent of node ``i`` (-1 for the root, which must be 0).
+
+    ``fractal = 0`` disables the self-similar radius (branching order only).
+    """
     n = len(parent)
     if n == 0 or parent[0] != -1:
         raise ValueError("node 0 must be the root")
@@ -75,18 +93,29 @@ def compute(
         a1[i] = start + span
         cursor[p] += span
 
-    r = [d / (d + h) if d + h else 0.0 for d, h in zip(depth, height, strict=True)]
+    gap = [h / (d + h) if d + h else 1.0 for d, h in zip(depth, height, strict=True)]
+    if fractal > 0:
+        gap = [
+            min(g, fractal * (hi - lo) ** FRACTAL_EXPONENT)
+            for g, lo, hi in zip(gap, a0, a1, strict=True)
+        ]
+    gap[0] = 1.0  # the root stays at the centre
 
     return Layout(
         a0=np.array(a0, dtype=np.float64),
         a1=np.array(a1, dtype=np.float64),
-        r=np.array(r, dtype=np.float64),
+        r=1.0 - np.array(gap, dtype=np.float64),
+        d=np.array(gap, dtype=np.float64),
         tips=np.array(tips, dtype=np.int32),
         height=np.array(height, dtype=np.int16),
     )
 
 
-def run(data_dir: Path, compression: float = DEFAULT_COMPRESSION) -> None:
+def run(
+    data_dir: Path,
+    compression: float = DEFAULT_COMPRESSION,
+    fractal: float = DEFAULT_FRACTAL,
+) -> None:
     path = db_path(data_dir)
     if not path.exists():
         raise SystemExit(f"missing {path}; run `taxonomy-pipeline build-db` first")
@@ -96,7 +125,7 @@ def run(data_dir: Path, compression: float = DEFAULT_COMPRESSION) -> None:
         cols = con.execute(
             "SELECT coalesce(parent_id, -1) AS parent, depth FROM node ORDER BY id"
         ).fetchnumpy()
-        layout = compute(cols["parent"].tolist(), cols["depth"].tolist(), compression)
+        layout = compute(cols["parent"].tolist(), cols["depth"].tolist(), compression, fractal)
         print(f"  computed layout in {time.perf_counter() - start:.1f}s")
 
         parquet = data_dir / "build" / "layout.parquet"
@@ -107,6 +136,7 @@ def run(data_dir: Path, compression: float = DEFAULT_COMPRESSION) -> None:
                 "a0": layout.a0,
                 "a1": layout.a1,
                 "r": layout.r,
+                "d": layout.d,
                 "tips": layout.tips,
                 "height": layout.height,
             }
@@ -117,8 +147,8 @@ def run(data_dir: Path, compression: float = DEFAULT_COMPRESSION) -> None:
         )
         con.execute("ALTER TABLE layout ADD PRIMARY KEY (id)")
         con.execute(
-            "CREATE OR REPLACE TABLE layout_meta AS SELECT ? AS compression",
-            [compression],
+            "CREATE OR REPLACE TABLE layout_meta AS SELECT ? AS compression, ? AS fractal",
+            [compression, fractal],
         )
         _report(con)
 
@@ -137,6 +167,4 @@ def _report(con: duckdb.DuckDBPyConnection) -> None:
     total = con.execute("SELECT tips FROM layout WHERE id = 0").fetchone()[0]
     print(f"    {'clade':<16}{'species':>12}{'% species':>11}{'% circle':>10}")
     for name, tips, share in rows:
-        print(
-            f"    {name:<16}{tips:>12,}{100 * tips / total:>10.3f}%{100 * share:>9.3f}%"
-        )
+        print(f"    {name:<16}{tips:>12,}{100 * tips / total:>10.3f}%{100 * share:>9.3f}%")

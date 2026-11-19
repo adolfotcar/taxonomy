@@ -139,15 +139,11 @@ def _report(con: duckdb.DuckDBPyConnection) -> None:
         """
     ).fetchone()
     print(f"    taxon: {taxa:,} rows")
-    print(
-        f"    node:  {nodes:,} rows, {tips:,} tips, {named:,} named, max depth {max_depth}"
-    )
+    print(f"    node:  {nodes:,} rows, {tips:,} tips, {named:,} named, max depth {max_depth}")
     if roots != 1:
         print(f"    WARNING: expected 1 root, found {roots}")
     if unmatched:
-        print(
-            f"    WARNING: {unmatched:,} tree nodes reference OTT ids missing from taxonomy"
-        )
+        print(f"    WARNING: {unmatched:,} tree nodes reference OTT ids missing from taxonomy")
 
 
 class _step:
