@@ -55,6 +55,8 @@ Pipeline (`cd pipeline`):
 - `uv sync` — install deps
 - `uv run taxonomy-pipeline fetch` — download + extract source data into
   `pipeline/data/` (resumable, idempotent; versions set in `sources.py`)
+- `uv run taxonomy-pipeline build-db` — parse the tree and build
+  `pipeline/data/taxonomy.duckdb` (tables `taxon`, `node`, `meta`; view `tree`)
 - `uv run pytest` — tests
 - `uv run ruff check .` / `uv run ruff format .` — lint / format
 

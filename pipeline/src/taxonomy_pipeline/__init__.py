@@ -17,6 +17,9 @@ def main(argv: list[str] | None = None) -> None:
     )
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("fetch", help="download and extract the source datasets")
+    commands.add_parser(
+        "build-db", help="build the master DuckDB database from the sources"
+    )
 
     args = parser.parse_args(argv)
 
@@ -24,3 +27,7 @@ def main(argv: list[str] | None = None) -> None:
         from .fetch import fetch_all
 
         fetch_all(args.data_dir)
+    elif args.command == "build-db":
+        from .build_db import build
+
+        build(args.data_dir)
