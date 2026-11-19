@@ -53,7 +53,8 @@ source data ──► pipeline/ (Python, DuckDB) ──► web/public/data/ (til
 
 Pipeline (`cd pipeline`):
 - `uv sync` — install deps
-- `uv run taxonomy-pipeline` — run the pipeline
+- `uv run taxonomy-pipeline fetch` — download + extract source data into
+  `pipeline/data/` (resumable, idempotent; versions set in `sources.py`)
 - `uv run pytest` — tests
 - `uv run ruff check .` / `uv run ruff format .` — lint / format
 

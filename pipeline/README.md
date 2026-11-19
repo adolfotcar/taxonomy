@@ -5,7 +5,7 @@ radial layout and writes static tiles + search index for the web app.
 
 ```sh
 uv sync
-uv run taxonomy-pipeline
+uv run taxonomy-pipeline fetch   # download source data into data/
 uv run pytest
 uv run ruff check .
 ```
