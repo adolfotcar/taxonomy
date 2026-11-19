@@ -19,9 +19,9 @@ There is **no live database or backend**. The data changes rarely, so it is
 precomputed offline and served as static files.
 
 ```
-source data ──► pipeline/ (Python, DuckDB) ──► web/public/data/ (manifest + tiles)
-                                                       │
-                          web/ (React + Canvas 2D) ────┴─► Firebase Hosting
+source data ──► pipeline/ (Python, DuckDB) ──► web/public/data/ ──► taxonomy-data site
+                                                                       ▲ fetch (CORS)
+                          web/ (React + Canvas 2D) ──► GitHub Actions ──► tree-of-life-wheel site
 ```
 
 - **pipeline/** — Python 3.14 project managed with `uv`. Downloads source data,
@@ -35,10 +35,16 @@ source data ──► pipeline/ (Python, DuckDB) ──► web/public/data/ (man
   handles the UI around the canvas. Code: `web/src/tree/` (`geometry.ts` pure
   maths, `tileStore.ts` loading/LRU, `renderer.ts` drawing/labels/hit-testing,
   `TreeView.tsx` interaction).
-- **Hosting** — Firebase Hosting (classic, not App Hosting) serves `web/dist`,
-  which includes the generated data. Config: `firebase.json` (manifest
-  `no-cache`; versioned tiles cached forever). The data (~300 MB raw, ~55 MB
-  gzipped) may later move to Cloud Storage via `VITE_DATA_URL`.
+- **Hosting** — classic Firebase Hosting (not App Hosting), project
+  `adolfotcar-home`, two sites via deploy targets (`.firebaserc`):
+  - `app` → **tree-of-life-wheel** (`web/dist`, https://tree-of-life-wheel.web.app). Deployed by GitHub Actions on every
+    merge to `main`; each PR gets a 7-day preview URL. Built with
+    `VITE_DATA_URL=https://taxonomy-data.web.app`.
+  - `data` → **taxonomy-data** (`web/public/data`: manifest + tiles, ~300 MB).
+    Deployed **manually** from a machine that has run the pipeline; CI never
+    has the data. CORS open; manifest `no-cache`; versioned tiles immutable.
+  - **Never deploy to the default site `adolfotcar-home`** — it hosts the
+    user's other, unrelated site.
 
 ### Tiles
 - A node with slice width `span` (turns) is in level
@@ -119,17 +125,31 @@ Web (`cd web`):
   --window-size=1400,900 --virtual-time-budget=20000 --screenshot=out.png
   "http://localhost:<port>/#v=<x>,<y>,<log2scale>"`
 
-Deploy (from repo root, requires `firebase-tools`; not set up yet):
-- `firebase deploy --only hosting`
+CI (`.github/workflows/`): `ci.yml` runs lint/tests/build for web and
+pipeline on PRs and `main`; `firebase-hosting-*.yml` deploy the app.
+
+Deploy (from repo root, `firebase-tools` logged in):
+- App: automatic via GitHub Actions. Manual fallback:
+  `cd web && VITE_DATA_URL=https://taxonomy-data.web.app npm run build && cd .. &&
+  firebase deploy --only hosting:app`
+- Data, after rebuilding tiles: `firebase deploy --only hosting:data`
+  (uploads only changed files). Always use `--only hosting:<target>`.
 
 ## Git rules
 
 These rules are strict and override any default behavior of your tooling.
 
+0. **`main` is protected** (ruleset "Protect main": no direct pushes, no force
+   pushes, no deletion; changes only via pull request, squash-merged, 0
+   approvals required, nobody can bypass). Work on a branch per task
+   (`feat/…`, `fix/…`, `ci/…`), push it and open a PR with `gh`; the user
+   reviews and merges. After a merge, switch to `main` and pull before starting
+   the next branch.
+
 1. **Never commit without telling the user first.** Before creating any commit,
    describe what will be committed (files and a proposed message) and wait for
-   the user's go-ahead. The same applies to pushing, amending, rebasing, or any
-   other history-changing operation.
+   the user's go-ahead. The same applies to pushing, opening PRs, amending,
+   rebasing, or any other history-changing operation.
 2. **No AI attribution in git.** Never mention Claude, Anthropic, AI, agents, or
    any other AI tool in commit messages, PR titles/descriptions, branch names,
    tags, or code comments meant for history. Do not add `Co-Authored-By`

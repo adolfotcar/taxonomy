@@ -12,3 +12,10 @@ uv run taxonomy-pipeline preview   # PNG preview in data/build/
 uv run pytest
 uv run ruff check .
 ```
+
+After rebuilding the tiles, publish them from the repo root:
+
+```sh
+firebase deploy --only hosting:data
+```
+

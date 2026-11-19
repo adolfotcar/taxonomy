@@ -1,0 +1,13 @@
+{
+  "projects": {
+    "default": "adolfotcar-home"
+  },
+  "targets": {
+    "adolfotcar-home": {
+      "hosting": {
+        "app": ["tree-of-life-wheel"],
+        "data": ["taxonomy-data"]
+      }
+    }
+  }
+}

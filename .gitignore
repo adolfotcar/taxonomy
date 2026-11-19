@@ -25,3 +25,9 @@ firebase-debug.log*
 # OS / editors
 .DS_Store
 .idea/
+
+# Assistant skill files installed locally by tooling (kept out of the repo)
+.agents/
+.claude/skills/
+.claude/settings.local.json
+skills-lock.json
